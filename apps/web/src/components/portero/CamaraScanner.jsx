@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5Qrcode } from 'html5-qrcode'
 
 export default function CamaraScanner({ onScan }) {
   const didInit = useRef(false)
@@ -10,29 +10,26 @@ export default function CamaraScanner({ onScan }) {
     if (didInit.current) return
     didInit.current = true
 
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 220, height: 220 }, supportedScanTypes: [0], facingMode: 'environment' },
-      false,
-    )
+    const scanner = new Html5Qrcode('qr-reader')
 
-    scanner.render(
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
       (token) => {
-        scanner.clear()
-        onScan(token)
+        scanner.stop().then(() => onScan(token)).catch(() => onScan(token))
       },
       () => {},
-    )
+    ).catch(() => {})
 
     return () => {
-      scanner.clear().catch(() => {})
+      scanner.stop().catch(() => {})
     }
   }, [onScan])
 
   return (
     <div
       id="qr-reader"
-      className="w-full rounded-xl overflow-hidden [&_video]:rounded-xl [&_select]:hidden [&_#qr-reader__dashboard_span]:hidden"
+      className="w-full rounded-xl overflow-hidden [&_video]:rounded-xl"
     />
   )
 }
