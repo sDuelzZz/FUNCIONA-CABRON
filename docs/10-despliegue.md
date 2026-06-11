@@ -125,11 +125,32 @@ git push origin main
 
 ## Paso 6 — Crear el proyecto en Vercel
 
+### El archivo vercel.json
+
+El código de la app vive en `apps/web/`, no en la raíz del repositorio. Cuando Vercel clona el repo y busca qué desplegar, empieza desde la raíz — y ahí no hay ningún proyecto Next.js, solo carpetas.
+
+El archivo `apps/web/vercel.json` resuelve esto:
+
+```json
+{
+  "framework": "nextjs"
+}
+```
+
+Al colocarlo dentro de `apps/web/`, le indicamos a Vercel que esa carpeta es la raíz del proyecto y que el framework es Next.js, para que aplique la configuración de build correcta (rutas de API, SSR, etc.).
+
+Sin este archivo, Vercel intentaría construir desde la raíz del repo y fallaría al no encontrar el `package.json` de Next.js.
+
+> En la UI de Vercel esto se configura al importar el proyecto: **Root Directory → `apps/web`**. El `vercel.json` refuerza esa configuración directamente desde el código.
+
+### Crear el proyecto
+
 1. Ve a [vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub
 2. Pulsa **Add New → Project**
 3. Elige tu repositorio de GitHub
-4. Vercel detectará que es un proyecto Next.js automáticamente
-5. Antes de pulsar **Deploy**, expande **Environment Variables** y añade todas las variables
+4. En **Root Directory** escribe `apps/web`
+5. Vercel detectará el `vercel.json` y configurará el framework automáticamente
+6. Antes de pulsar **Deploy**, expande **Environment Variables** y añade todas las variables
 
 ### Variables de entorno que necesitas en Vercel
 
