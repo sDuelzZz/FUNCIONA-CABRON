@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { logout } from '@/lib/actions/auth'
 import { actualizarPerfil, actualizarAvatar, actualizarContrasena } from '@/lib/actions/miCuenta'
+import Image from 'next/image'
 
 const TABS = [
   { id: 'personal', label: 'Datos personales' },
@@ -139,7 +140,7 @@ export default function PerfilClient({ nombre, email, rol, avatarUrl }) {
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-gold-500/20 border-2 border-gold-500/40 overflow-hidden flex items-center justify-center">
             {avatar
-              ? <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ? <Image width={400} height={400} src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               : <span className="text-3xl font-bold text-gold-400">{nombre?.[0]?.toUpperCase() ?? '?'}</span>
             }
           </div>

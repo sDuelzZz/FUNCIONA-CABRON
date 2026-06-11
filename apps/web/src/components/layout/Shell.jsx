@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import BottomNav from './BottomNav'
+import PWAInstallPrompt from './PWAInstallPrompt'
 
 const AUTH_ROUTES = ['/login', '/register']
 
@@ -30,6 +31,7 @@ export default function Shell({ children, rol, nombre, avatarUrl }) {
       </div>
 
       <BottomNav rol={rol} />
+      <PWAInstallPrompt />
     </div>
   )
 }

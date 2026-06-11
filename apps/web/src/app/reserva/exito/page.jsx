@@ -29,7 +29,7 @@ export default async function PaginaExitoReserva({ searchParams }) {
         <p className="text-gold-400 font-bold text-xl">{reserva.total} € pagados</p>
       </div>
       <p className="text-zinc-500 text-sm">Tu entrada con código QR ya está disponible en tu perfil.</p>
-      <Link href="/mi-area" className="px-6 py-2.5 bg-gold-500 hover:bg-gold-600 text-zinc-950 font-bold rounded-xl text-sm">
+      <Link href="/mi-area?tab=zonas" className="px-6 py-2.5 bg-gold-500 hover:bg-gold-600 text-zinc-950 font-bold rounded-xl text-sm">
         Ver mis reservas
       </Link>
     </div>

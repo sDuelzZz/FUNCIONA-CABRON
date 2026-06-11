@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import FlexLogo from '@/components/layout/FlexLogo'
 import { login } from '@/lib/actions/auth'
+import Image from 'next/image'
 
 export default function PaginaLogin() {
   const [email, setEmail] = useState('')
@@ -25,7 +26,9 @@ export default function PaginaLogin() {
     <div className="min-h-screen flex">
       {/* Panel izquierdo — foto */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-        <img
+        <Image
+          width={400}
+          height={400}
           src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&auto=format&fit=crop&q=80"
           alt="Ambiente Flex"
           className="absolute inset-0 w-full h-full object-cover"
@@ -41,7 +44,10 @@ export default function PaginaLogin() {
       {/* Panel derecho — formulario */}
       <div className="flex-1 flex flex-col justify-center items-center px-8 py-12 bg-zinc-950">
         <div className="lg:hidden absolute inset-0 -z-10">
-          <img
+          <Image
+            width={400}
+            height={400}
+            loading="eager"
             src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80"
             alt=""
             className="w-full h-full object-cover opacity-20"

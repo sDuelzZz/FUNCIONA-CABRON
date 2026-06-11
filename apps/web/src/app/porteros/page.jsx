@@ -1,39 +1,44 @@
 'use client'
 
-import { useState } from 'react'
-import { QrCode, CheckCircle, XCircle, Search } from 'lucide-react'
-
-const ENTRADAS_VALIDADAS = [
-  { id: 1, codigo: 'FLEX-2C7B', nombre: 'Alex García', tipo: 'Pista Principal', hora: '23:01', ok: true },
-  { id: 2, codigo: 'FLEX-9A3F', nombre: 'María López', tipo: 'Zona VIP', hora: '23:04', ok: true },
-  { id: 3, codigo: 'FLEX-4D8X', nombre: 'Pedro Gil', tipo: 'Pista Principal', hora: '23:09', ok: false },
-  { id: 4, codigo: 'FLEX-7E2Q', nombre: 'Sara Martín', tipo: 'Pista Principal', hora: '23:15', ok: true },
-]
+import { useState, useTransition, useCallback, useEffect } from 'react'
+import { CheckCircle, XCircle, Search, Camera, Keyboard } from 'lucide-react'
+import { verificarEntrada, obtenerHistorial } from '@/lib/actions/portero'
+import CamaraScanner from '@/components/portero/CamaraScanner'
 
 export default function PaginaPorteros() {
+  const [modo, setModo] = useState('camara') // 'camara' | 'manual'
   const [codigo, setCodigo] = useState('')
   const [resultado, setResultado] = useState(null)
-  const [historial, setHistorial] = useState(ENTRADAS_VALIDADAS)
+  const [historial, setHistorial] = useState([])
+  const [isPending, startTransition] = useTransition()
 
-  function escanear() {
-    if (!codigo.trim()) return
-    const valido = codigo.startsWith('FLEX-') && codigo.length === 9
-    const entrada = {
-      id: Date.now(),
-      codigo: codigo.toUpperCase(),
-      nombre: valido ? 'Cliente verificado' : 'Desconocido',
-      tipo: valido ? 'Pista Principal' : '—',
-      hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-      ok: valido,
-    }
-    setResultado(entrada)
-    setHistorial(prev => [entrada, ...prev])
-    setTimeout(() => setResultado(null), 4000)
-    setCodigo('')
+  useEffect(() => {
+    obtenerHistorial().then(setHistorial)
+  }, [])
+
+  function procesar(token) {
+    const t = token.trim()
+    if (!t) return
+
+    startTransition(async () => {
+      const res = await verificarEntrada(t)
+      const entrada = {
+        id: Date.now(),
+        token: t,
+        sala: res.sala ?? '—',
+        hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        valido: res.valido,
+        motivo: res.motivo,
+      }
+      setResultado(entrada)
+      setHistorial(prev => [entrada, ...prev])
+      setTimeout(() => setResultado(null), 5000)
+      setCodigo('')
+    })
   }
 
+  const onScan = useCallback((token) => procesar(token), [])
 
-  // solo enseñale esto al que tenga rol = 'portero' y si no, lo devuelves a la pagina principal route.push('/')
   return (
     <div className="p-4 sm:p-8">
       <div className="mb-6">
@@ -43,47 +48,68 @@ export default function PaginaPorteros() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Scanner */}
-        <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 flex flex-col items-center gap-6">
-            <div className="w-48 h-48 bg-zinc-800 rounded-2xl flex items-center justify-center border-2 border-dashed border-zinc-700">
-              <QrCode size={80} className="text-zinc-600" />
-            </div>
-            <p className="text-zinc-500 text-sm text-center">
-              Apunta la cámara al código QR<br />de la entrada del cliente
-            </p>
-            <div className="w-full flex gap-2">
-              <input
-                placeholder="Código manual (ej. FLEX-2C7B)"
-                value={codigo}
-                onChange={e => setCodigo(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && escanear()}
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-gold-500"
-              />
-              <button
-                onClick={escanear}
-                className="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-zinc-950 text-sm font-semibold rounded-lg"
-              >
-                <Search size={16} />
-              </button>
-            </div>
+        <div className="space-y-4">
+          {/* Selector de modo */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setModo('camara')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${modo === 'camara' ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+            >
+              <Camera size={14} /> Cámara
+            </button>
+            <button
+              onClick={() => setModo('manual')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${modo === 'manual' ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+            >
+              <Keyboard size={14} /> Manual
+            </button>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-6">
+            {modo === 'camara' ? (
+              <CamaraScanner onScan={onScan} />
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="text-zinc-500 text-sm text-center">Pega o escribe el token del QR</p>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Token de la entrada"
+                    value={codigo}
+                    onChange={e => setCodigo(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && procesar(codigo)}
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-gold-500"
+                  />
+                  <button
+                    onClick={() => procesar(codigo)}
+                    disabled={isPending}
+                    className="px-4 py-2 bg-gold-500 hover:bg-gold-600 disabled:opacity-50 text-zinc-950 text-sm font-semibold rounded-lg"
+                  >
+                    {isPending ? '…' : <Search size={16} />}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Resultado */}
           {resultado && (
-            <div className={`rounded-2xl border p-6 flex items-center gap-4 ${resultado.ok
-                ? 'bg-emerald-500/10 border-emerald-500/40'
-                : 'bg-red-500/10 border-red-500/40'
-              }`}>
-              {resultado.ok
+            <div className={`rounded-2xl border p-6 flex items-center gap-4 ${resultado.valido
+              ? 'bg-emerald-500/10 border-emerald-500/40'
+              : 'bg-red-500/10 border-red-500/40'
+            }`}>
+              {resultado.valido
                 ? <CheckCircle size={40} className="text-emerald-400 shrink-0" />
                 : <XCircle size={40} className="text-red-400 shrink-0" />
               }
               <div>
-                <p className={`text-xl font-bold ${resultado.ok ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {resultado.ok ? 'ENTRADA VÁLIDA' : 'ENTRADA INVÁLIDA'}
+                <p className={`text-xl font-bold ${resultado.valido ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {resultado.valido ? 'ENTRADA VÁLIDA' : 'ENTRADA INVÁLIDA'}
                 </p>
-                <p className="text-zinc-300 text-sm mt-0.5">{resultado.nombre}</p>
-                <p className="text-zinc-500 text-xs">{resultado.tipo} · {resultado.codigo}</p>
+                {resultado.valido
+                  ? <p className="text-zinc-300 text-sm mt-0.5">{resultado.sala}</p>
+                  : <p className="text-zinc-400 text-sm mt-0.5">{resultado.motivo}</p>
+                }
+                <p className="text-zinc-500 text-xs font-mono mt-0.5">{resultado.token.slice(0, 8)}…</p>
               </div>
             </div>
           )}
@@ -92,19 +118,22 @@ export default function PaginaPorteros() {
         {/* Historial */}
         <div>
           <h2 className="text-lg font-semibold text-zinc-100 mb-4">Últimas validaciones</h2>
+          {historial.length === 0 && (
+            <p className="text-zinc-600 text-sm">Aún no hay validaciones en esta sesión.</p>
+          )}
           <div className="space-y-2">
             {historial.map(e => (
               <div key={e.id} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-4">
-                {e.ok
+                {e.valido
                   ? <CheckCircle size={18} className="text-emerald-400 shrink-0" />
                   : <XCircle size={18} className="text-red-400 shrink-0" />
                 }
                 <div className="flex-1 min-w-0">
-                  <p className="text-zinc-100 text-sm font-medium truncate">{e.nombre}</p>
-                  <p className="text-zinc-500 text-xs">{e.tipo}</p>
+                  <p className="text-zinc-100 text-sm font-medium truncate">{e.sala}</p>
+                  {!e.valido && <p className="text-zinc-500 text-xs truncate">{e.motivo}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-zinc-500 text-xs font-mono">{e.codigo}</p>
+                  <p className="text-zinc-500 text-xs font-mono">{e.token.slice(0, 8)}…</p>
                   <p className="text-zinc-600 text-xs">{e.hora}</p>
                 </div>
               </div>

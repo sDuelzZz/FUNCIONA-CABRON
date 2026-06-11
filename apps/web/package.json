@@ -3,16 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@supabase/ssr": "^0.10.3",
+<<<<<<< HEAD
     "@supabase/supabase-js": "^2.108.0",
+=======
+    "@supabase/supabase-js": "^2.107.0",
+    "html5-qrcode": "^2.3.8",
+>>>>>>> c58a76e593d2f0deffaf75226b394491dc0d7345
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "stripe": "^22.2.0",

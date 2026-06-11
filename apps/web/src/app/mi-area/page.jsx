@@ -35,7 +35,7 @@ export default async function PaginaMiArea() {
     supabase
       .from('reservas')
       .select(`
-        id, inicio, fin, estado,
+        id, inicio, fin, estado, estado_pago, qr_token,
         salas_vip ( nombre, descripcion )
       `)
       .eq('cliente_id', user.id)

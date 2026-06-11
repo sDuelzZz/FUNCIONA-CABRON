@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { X, ImagePlus } from 'lucide-react'
+import Image from 'next/image'
 
 const CATEGORIAS = ['bebida', 'comida', 'pack']
 
@@ -36,7 +37,7 @@ export default function ModalProducto({ formP, setFormP, editandoId, isPending, 
             className="w-full h-32 rounded-xl border-2 border-dashed border-zinc-700 hover:border-gold-500 transition-colors overflow-hidden flex items-center justify-center relative"
           >
             {preview ? (
-              <img src={preview} alt="preview" className="w-full h-full object-cover" />
+              <Image width={400} height={400} src={preview} alt="preview" className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-1 text-zinc-600">
                 <ImagePlus size={24} />

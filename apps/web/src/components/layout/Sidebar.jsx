@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ShoppingCart, Crown, User, ShieldCheck, QrCode, LayoutDashboard, ChevronUp } from 'lucide-react'
 import FlexLogo from '@/components/layout/FlexLogo'
+import Image from 'next/image'
 
 const NAV_CLIENTE = [
   { icon: ShoppingCart, label: 'Pedir', href: '/' },
@@ -66,7 +67,7 @@ export default function Sidebar({ rol, nombre, avatarUrl }) {
       >
         <div className="w-8 h-8 rounded-full bg-gold-500/30 border border-gold-500/40 overflow-hidden flex items-center justify-center text-gold-400 text-sm font-bold shrink-0">
           {avatarUrl
-            ? <img src={avatarUrl} alt={nombre} className="w-full h-full object-cover" />
+            ? <Image width={400} height={400} src={avatarUrl} alt={nombre} className="w-full h-full object-cover" />
             : nombre?.[0]?.toUpperCase() ?? '?'
           }
         </div>

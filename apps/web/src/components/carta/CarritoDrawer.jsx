@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCarritoStore } from '@/store/carritoStore'
 import { iniciarPagoPedido } from '@/lib/actions/pedidos'
 import { ShoppingCart, X } from 'lucide-react'
+import Image from 'next/image'
 
 export default function CarritoDrawer({ mesas = [] }) {
   const router = useRouter()
@@ -89,7 +90,7 @@ export default function CarritoDrawer({ mesas = [] }) {
                 <li key={item.id} className="flex items-center gap-3 bg-zinc-800/50 rounded-xl px-3 py-3">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-700 shrink-0">
                     {item.imagen_url ? (
-                      <img src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
+                      <Image width={400} height={400} src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full" />
                     )}

@@ -108,6 +108,7 @@ insert into public.salas_vip (nombre, descripcion, capacidad, precio_hora) value
   stripe_payment  text,
   qr_token        text unique,
   total           numeric(8,2) not null,
+  usado_at        timestamptz,
   creado_en       timestamptz not null default now(),
 
   constraint sin_solapamiento exclude using gist (

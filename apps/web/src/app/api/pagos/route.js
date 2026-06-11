@@ -56,7 +56,7 @@ export async function POST(req) {
 
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'klarna'],
       line_items: lineItems,
       mode: 'payment',
       payment_intent_data: {
@@ -80,7 +80,7 @@ export async function POST(req) {
     const tabla = tipo === 'reserva' ? 'reservas' : 'pedidos'
     await supabase.from(tabla).update({ stripe_session: session.id }).eq('id', id)
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ url: session.url }) // Ahora te vas a Stripe a que el usuario pague
 
   } catch (err) {
     console.error('Error en checkout:', err)

@@ -53,7 +53,7 @@ npm install next-pwa
 
 ### 1.2 Modificar next.config
 
-Abre `apps/web/next.config.mjs` (o `.js`, dependiendo de tu proyecto) y envuelve la configuración con `withPWA`:
+Abre `apps/web/next.config.mjs` y envuelve la configuración con `withPWA`:
 
 ```js
 // apps/web/next.config.mjs
@@ -68,29 +68,13 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ...tu configuración que ya tenías
+  // ...tu configuración que ya tenías (images, remotePatterns, etc.)
 }
 
 export default withPWA(nextConfig)
 ```
 
 > `disable: process.env.NODE_ENV === 'development'` es importante: el Service Worker interfiere con el hot reload de Next.js en local. Solo lo activamos en producción.
-
-Si tu archivo usa `require` en vez de `import`, la sintaxis es:
-
-```js
-// apps/web/next.config.js
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-})
-
-module.exports = withPWA({
-  // ...tu configuración que ya tenías
-})
-```
 
 ### 1.3 Crear el manifest
 
@@ -138,15 +122,6 @@ export const metadata = {
   manifest: '/manifest.json',
 }
 ```
-
-Si usas el objeto `metadata` de Next.js App Router, añade solo esa línea. Si en el `<head>` estás poniendo etiquetas manualmente, añade:
-
-```html
-<link rel="manifest" href="/manifest.json" />
-<link rel="apple-touch-icon" href="/icons/icon-192.png" />
-```
-
-La segunda línea es para iOS, que no usa el manifest para el icono de pantalla de inicio.
 
 ### ¿Cómo verificar que funciona?
 
@@ -558,25 +533,77 @@ export default function PaginaPorteros() {
 }
 ```
 
-### 3.3 Proteger la página por rol
+### 3.3 Escanear con la cámara del móvil
 
-La página del portero debería ser solo accesible para usuarios con `rol = 'portero'` (o `admin`). El proyecto ya tiene el middleware en `proxy.js` que ejecuta la protección de rutas. Añade la comprobación al principio de la página o en el middleware:
+El portero no debería tener que copiar y pegar el token a mano. La librería `html5-qrcode` abre la cámara del móvil directamente en el navegador y detecta el código QR en tiempo real.
 
-```js
-// Al principio del componente de servidor (si conviertes el wrapper a Server Component):
-const supabase = await createClient()
-const { data: { user } } = await supabase.auth.getUser()
+```bash
+npm install html5-qrcode
+```
 
-const { data: perfil } = await supabase
-  .from('perfiles')
-  .select('rol')
-  .eq('id', user.id)
-  .single()
+Crea el componente `src/components/portero/CamaraScanner.jsx`:
 
-if (!perfil || !['portero', 'admin'].includes(perfil.rol)) {
-  redirect('/')
+```jsx
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { Html5QrcodeScanner } from 'html5-qrcode'
+
+export default function CamaraScanner({ onScan }) {
+  const didInit = useRef(false)
+
+  useEffect(() => {
+    if (didInit.current) return
+    didInit.current = true
+
+    const scanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 220, height: 220 }, supportedScanTypes: [0] },
+      false,
+    )
+
+    scanner.render(
+      (token) => {
+        scanner.clear()
+        onScan(token)   // dispara verificarEntrada con el token leído
+      },
+      () => {},
+    )
+
+    return () => { scanner.clear().catch(() => {}) }
+  }, [onScan])
+
+  return <div id="qr-reader" className="w-full rounded-xl overflow-hidden" />
 }
 ```
+
+Puntos clave:
+
+- `useRef(false)` evita que el scanner se monte dos veces en desarrollo (React monta los efectos dos veces en modo estricto).
+- `supportedScanTypes: [0]` activa solo la cámara, sin la opción de subir imagen.
+- Cuando detecta el QR llama a `onScan(token)` — la misma función que ya teníamos para el modo manual.
+
+En `porteros/page.jsx` añades un toggle Cámara / Manual y montas el componente solo cuando el modo es `'camara'`:
+
+```jsx
+import CamaraScanner from '@/components/portero/CamaraScanner'
+import { useCallback } from 'react'
+
+const onScan = useCallback((token) => procesar(token), [])
+
+// En el JSX:
+{modo === 'camara' ? (
+  <CamaraScanner onScan={onScan} />
+) : (
+  <input ... />
+)}
+```
+
+> El navegador pedirá permiso de cámara la primera vez. En móvil usa automáticamente la cámara trasera.
+
+### 3.4 Proteger la página por rol
+
+Esta parte **ya está hecha**. El archivo `proxy.js` contiene el middleware de Next.js que comprueba el rol del usuario antes de dejarle entrar a `/porteros`. No tienes que añadir nada en la página: si alguien sin el rol correcto intenta acceder, el middleware le redirige automáticamente.
 
 ---
 

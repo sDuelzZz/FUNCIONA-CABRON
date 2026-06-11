@@ -372,8 +372,19 @@ git push origin main
 
 1. Ve a [vercel.com](https://vercel.com) → **Add New Project**
 2. Importa tu repositorio de GitHub
-3. Framework: **Next.js** (Vercel lo detecta solo)
-4. Click en **Deploy** (la primera vez fallará porque faltan las variables de entorno)
+3. En el asistente de importación, despliega **Root Directory** y escribe `apps/web`
+4. Framework: **Next.js** (Vercel lo detecta automáticamente si el Root Directory es correcto)
+5. Click en **Deploy** (la primera vez fallará porque faltan las variables de entorno)
+
+> **Monorepo — problema frecuente:** Si el framework se detecta como *"Other"* en lugar de *Next.js*, el routing no funcionará y todas las rutas devolverán `404 NOT_FOUND` aunque el deployment esté en verde. La causa es que Vercel no reconoció el framework al crear el proyecto.
+>
+> **Solución:** Añade un archivo `apps/web/vercel.json` con el siguiente contenido y haz push:
+>
+> ```json
+> { "framework": "nextjs" }
+> ```
+>
+> Esto fuerza a Vercel a tratar el proyecto como Next.js independientemente de lo que detecte automáticamente. El archivo ya está incluido en este repositorio.
 
 ### 5.3 Variables de entorno en Vercel
 
