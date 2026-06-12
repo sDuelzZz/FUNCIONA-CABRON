@@ -11,12 +11,7 @@
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
     "@supabase/ssr": "^0.10.3",
-<<<<<<< HEAD
     "@supabase/supabase-js": "^2.108.0",
-=======
-    "@supabase/supabase-js": "^2.107.0",
-    "html5-qrcode": "^2.3.8",
->>>>>>> c58a76e593d2f0deffaf75226b394491dc0d7345
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "qrcode": "^1.5.4",
